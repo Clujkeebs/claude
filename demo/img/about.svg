@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000" viewBox="0 0 800 1000">
+  <rect width="800" height="1000" fill="#161616"/>
+  <rect x="60" y="60" width="680" height="880" fill="none" stroke="#c8001e" stroke-width="8"/>
+  <circle cx="400" cy="380" r="180" fill="#2a2a2a"/>
+  <circle cx="400" cy="380" r="178" fill="none" stroke="#c8001e" stroke-width="4"/>
+  <circle cx="345" cy="345" r="16" fill="#f0ede8"/>
+  <circle cx="455" cy="345" r="16" fill="#f0ede8"/>
+  <path d="M330 450 Q400 500 470 450" stroke="#f0ede8" stroke-width="10" fill="none"/>
+  <text x="400" y="700" font-family="Arial Black" font-size="64" font-weight="900" fill="#f0ede8" text-anchor="middle">GUERRILLA</text>
+  <text x="400" y="780" font-family="Arial Black" font-size="64" font-weight="900" fill="#c8001e" text-anchor="middle">ARTIST</text>
+  <text x="400" y="860" font-family="Arial" font-size="26" fill="#9b9590" text-anchor="middle">SINCE 1986</text>
+</svg>

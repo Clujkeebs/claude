@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Cart — Robbie Conal's Art Attack (Demo)</title>
+  <link rel="stylesheet" href="theme.css">
+</head>
+<body class="template-cart">
+
+  <div class="announcement-bar"><a href="collection.html">Free shipping on orders over $100 — Theme Demo Preview</a></div>
+
+  <header class="site-header" role="banner">
+    <div class="container">
+      <div class="header-inner">
+        <div class="header-logo">
+          <a href="index.html"><span class="logo-primary">Robbie Conal</span><span class="logo-sub">Art Attack</span></a>
+        </div>
+        <nav class="site-nav-wrap" aria-label="Main navigation">
+          <ul class="site-nav" role="list">
+            <li><a href="index.html">Home</a></li>
+            <li>
+              <button aria-haspopup="true">Shop <span class="nav-arrow" aria-hidden="true">&#9660;</span></button>
+              <ul class="nav-dropdown" role="list">
+                <li><a href="collection.html">All Products</a></li>
+                <li><a href="collection.html">Featured Items</a></li>
+                <li><a href="collection.html">Limited Edition Prints</a></li>
+                <li><a href="collection.html">Posters</a></li>
+                <li><a href="collection.html">Drawings &amp; Paintings</a></li>
+                <li><a href="collection.html">Books</a></li>
+              </ul>
+            </li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="about.html#contact">Contact</a></li>
+          </ul>
+        </nav>
+        <div class="header-actions">
+          <a href="cart.html" class="header-icon-btn" aria-label="Cart">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+            <span class="cart-count" style="display:none;">0</span>
+          </a>
+          <button class="menu-toggle" aria-label="Open menu"><span></span><span></span><span></span></button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <div class="container">
+      <div class="cart-layout">
+        <div class="cart-items">
+          <h1 class="cart-title">Your Cart</h1>
+          <div data-demo-cart-items></div>
+        </div>
+
+        <div class="cart-summary" data-demo-cart-summary>
+          <h2 class="cart-summary__title">Order Summary</h2>
+          <div class="cart-summary__row">
+            <span>Subtotal (<span data-demo-count>0</span> items)</span>
+            <span data-demo-subtotal>$0.00</span>
+          </div>
+          <div class="cart-summary__row">
+            <span>Shipping</span>
+            <span>Calculated at checkout</span>
+          </div>
+          <div class="cart-summary__row cart-summary__row--total">
+            <span>Total</span>
+            <span data-demo-subtotal>$0.00</span>
+          </div>
+          <div class="cart-note">
+            <label for="cart-note">Order note</label>
+            <textarea id="cart-note" placeholder="Special instructions..."></textarea>
+          </div>
+          <button type="button" class="btn btn--solid btn--full" onclick="alert('Demo preview — checkout is handled by Shopify when the theme is installed.')">Checkout</button>
+          <a href="collection.html" class="btn btn--full" style="margin-top:0.75rem;">Continue Shopping</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-bottom" style="border-top:none;padding-top:0;">
+        <p class="footer-copyright">&copy; 1968&ndash;2026 Robbie Conal's Art Attack — Theme demo preview.</p>
+      </div>
+    </div>
+  </footer>
+
+  <nav class="mobile-nav" aria-label="Mobile navigation">
+    <div class="mobile-nav-overlay"></div>
+    <div class="mobile-nav-drawer">
+      <div class="mobile-nav-close"><button aria-label="Close menu">&#x2715;</button></div>
+      <ul class="mobile-nav-list">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="collection.html">Shop</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="cart.html">Cart</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <script src="demo.js"></script>
+</body>
+</html>

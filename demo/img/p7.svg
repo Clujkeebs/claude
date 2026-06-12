@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800">
+  <rect width="600" height="800" fill="#10141a"/>
+  <rect x="30" y="30" width="540" height="740" fill="none" stroke="#3fa050" stroke-width="6"/>
+  <circle cx="300" cy="330" r="150" fill="#3fa050" opacity="0.25"/>
+  <ellipse cx="300" cy="330" rx="110" ry="140" fill="#f0ede8" opacity="0.12"/>
+  <circle cx="255" cy="300" r="14" fill="#f0ede8"/>
+  <circle cx="345" cy="300" r="14" fill="#f0ede8"/>
+  <path d="M240 400 Q300 440 360 400" stroke="#f0ede8" stroke-width="8" fill="none"/>
+  <text x="300" y="600" font-family="Arial Black, Arial" font-size="58" font-weight="900" fill="#f0ede8" text-anchor="middle" letter-spacing="2">DOUGH</text>
+  <text x="300" y="660" font-family="Arial Black, Arial" font-size="58" font-weight="900" fill="#3fa050" text-anchor="middle" letter-spacing="2">NATION</text>
+  <text x="300" y="730" font-family="Arial" font-size="20" fill="#f0ede8" text-anchor="middle" opacity="0.6">ROBBIE CONAL &#8226; 1996</text>
+</svg>

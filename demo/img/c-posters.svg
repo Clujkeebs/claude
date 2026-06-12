@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="338" viewBox="0 0 600 338">
+  <rect width="600" height="338" fill="#1c1c1c"/>
+  <rect x="40" y="40" width="160" height="220" fill="#e8b020" opacity="0.35" transform="rotate(-4 120 150)"/>
+  <rect x="220" y="60" width="160" height="220" fill="#2a2a2a" stroke="#e8b020" stroke-width="4" transform="rotate(3 300 170)"/>
+  <rect x="400" y="45" width="160" height="220" fill="#252525" stroke="#f0ede8" stroke-width="3" transform="rotate(-2 480 155)"/>
+  <text x="300" y="180" font-family="Arial Black" font-size="40" font-weight="900" fill="#f0ede8" text-anchor="middle" opacity="0.9">POSTERS</text>
+</svg>
