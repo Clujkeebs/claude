@@ -2,3 +2,4 @@ art-attack-demo.zip
 *.zip
 .vercel/
 node_modules/
+art-attack-demo.html
