@@ -1,0 +1,72 @@
+{%- assign col = section.settings.collection -%}
+{%- if col != blank -%}
+
+<section class="section{% if section.settings.dark_bg %} section--dark{% endif %}">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">{{ section.settings.title | default: col.title }}</h2>
+      <a href="{{ col.url }}" class="section-link">View all &rarr;</a>
+    </div>
+
+    <div class="product-grid">
+      {%- assign limit = section.settings.products_to_show | default: 8 -%}
+      {%- for product in col.products limit: limit -%}
+        {%- render 'card-product', product: product -%}
+      {%- endfor -%}
+    </div>
+
+    {%- if section.settings.show_view_all -%}
+      <div style="text-align:center; margin-top: 2.5rem;">
+        <a href="{{ col.url }}" class="btn">View All {{ col.title }}</a>
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Featured Collection",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Section title (overrides collection name)"
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "min": 2,
+      "max": 12,
+      "step": 2,
+      "default": 8,
+      "label": "Products to show"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_view_all",
+      "default": true,
+      "label": "Show 'View all' button"
+    },
+    {
+      "type": "checkbox",
+      "id": "dark_bg",
+      "default": false,
+      "label": "Dark background"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Featured Collection",
+      "category": "Collection"
+    }
+  ]
+}
+{% endschema %}

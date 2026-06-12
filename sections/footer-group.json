@@ -1,0 +1,14 @@
+{
+  "name": "Footer group",
+  "sections": {
+    "footer": {
+      "type": "footer",
+      "settings": {
+        "bio": "Robbie Conal is America's premier guerrilla poster artist — turning political outrage into unflinching street art since 1986.",
+        "instagram_url": "",
+        "facebook_url": ""
+      }
+    }
+  },
+  "order": ["footer"]
+}

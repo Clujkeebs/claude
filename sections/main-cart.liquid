@@ -1,0 +1,90 @@
+<div class="container">
+  <div class="cart-layout">
+    <div class="cart-items">
+      <h1 class="cart-title">Your Cart</h1>
+
+      {%- if cart.item_count > 0 -%}
+        {%- for item in cart.items -%}
+          <div class="cart-item">
+            <a href="{{ item.url }}" class="cart-item__image">
+              <img
+                src="{{ item.image | image_url: width: 200 }}"
+                alt="{{ item.image.alt | default: item.title | escape }}"
+                loading="lazy"
+                width="90"
+              >
+            </a>
+            <div class="cart-item__details">
+              <p class="cart-item__title">
+                <a href="{{ item.url }}">{{ item.product.title }}</a>
+              </p>
+              {%- unless item.variant.title == 'Default Title' -%}
+                <p class="cart-item__variant">{{ item.variant.title }}</p>
+              {%- endunless -%}
+              <p style="font-family:var(--font-ui);font-size:0.78rem;margin-bottom:0.4rem;">
+                Qty: {{ item.quantity }} &times; {{ item.price | money }}
+              </p>
+              <button
+                class="cart-item__remove"
+                data-cart-remove="{{ item.key }}"
+                aria-label="Remove {{ item.title }}"
+              >
+                Remove
+              </button>
+            </div>
+            <p style="font-family:var(--font-ui);font-size:0.85rem;font-weight:700;white-space:nowrap;">
+              {{ item.line_price | money }}
+            </p>
+          </div>
+        {%- endfor -%}
+      {%- else -%}
+        <p style="padding: 3rem 0; color: var(--text-muted);">
+          Your cart is empty. <a href="/collections/all" style="color:var(--accent);text-decoration:underline;">Continue shopping</a>
+        </p>
+      {%- endif -%}
+    </div>
+
+    {%- if cart.item_count > 0 -%}
+      <div class="cart-summary">
+        <h2 class="cart-summary__title">Order Summary</h2>
+
+        <div class="cart-summary__row">
+          <span>Subtotal ({{ cart.item_count }} items)</span>
+          <span>{{ cart.total_price | money }}</span>
+        </div>
+        <div class="cart-summary__row">
+          <span>Shipping</span>
+          <span>Calculated at checkout</span>
+        </div>
+        <div class="cart-summary__row cart-summary__row--total">
+          <span>Total</span>
+          <span>{{ cart.total_price | money }}</span>
+        </div>
+
+        <form action="/cart" method="post" class="cart-note">
+          <label for="cart-note">Order note</label>
+          <textarea
+            id="cart-note"
+            name="note"
+            placeholder="Special instructions..."
+          >{{ cart.note }}</textarea>
+
+          <button type="submit" name="checkout" class="btn btn--solid btn--full" style="margin-top:1rem;">
+            Checkout
+          </button>
+        </form>
+
+        <a href="/collections/all" class="btn btn--full" style="margin-top:0.75rem;">
+          Continue Shopping
+        </a>
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Cart",
+  "settings": []
+}
+{% endschema %}

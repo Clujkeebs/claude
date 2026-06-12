@@ -1,0 +1,105 @@
+<section class="hero">
+  {%- if section.settings.image != blank -%}
+    <div class="hero-media">
+      <img
+        src="{{ section.settings.image | image_url: width: 1600 }}"
+        srcset="
+          {{ section.settings.image | image_url: width: 800 }} 800w,
+          {{ section.settings.image | image_url: width: 1200 }} 1200w,
+          {{ section.settings.image | image_url: width: 1600 }} 1600w
+        "
+        sizes="100vw"
+        alt="{{ section.settings.image.alt | escape }}"
+        loading="eager"
+        fetchpriority="high"
+      >
+    </div>
+    <div class="hero-overlay"></div>
+  {%- endif -%}
+
+  <div class="container">
+    <div class="hero-content">
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="hero-eyebrow">{{ section.settings.eyebrow }}</p>
+      {%- endif -%}
+      {%- if section.settings.heading != blank -%}
+        <h1 class="hero-title">{{ section.settings.heading }}</h1>
+      {%- endif -%}
+      {%- if section.settings.text != blank -%}
+        <p class="hero-text">{{ section.settings.text }}</p>
+      {%- endif -%}
+      <div class="hero-actions">
+        {%- if section.settings.cta_label != blank -%}
+          <a href="{{ section.settings.cta_url | default: '/collections/all' }}" class="btn btn--solid">
+            {{ section.settings.cta_label }}
+          </a>
+        {%- endif -%}
+        {%- if section.settings.cta2_label != blank -%}
+          <a href="{{ section.settings.cta2_url | default: '/pages/about' }}" class="btn">
+            {{ section.settings.cta2_label }}
+          </a>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Hero Banner",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Background image"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow text",
+      "default": "New Work Available"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Robbie Conal's Art Attack"
+    },
+    {
+      "type": "textarea",
+      "id": "text",
+      "label": "Subtext",
+      "default": "Guerrilla poster art that hits where it hurts — politically charged prints, posters, drawings, and books."
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Button 1 label",
+      "default": "Shop All"
+    },
+    {
+      "type": "url",
+      "id": "cta_url",
+      "label": "Button 1 link"
+    },
+    {
+      "type": "text",
+      "id": "cta2_label",
+      "label": "Button 2 label",
+      "default": "About Robbie"
+    },
+    {
+      "type": "url",
+      "id": "cta2_url",
+      "label": "Button 2 link"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Hero Banner",
+      "category": "Image"
+    }
+  ]
+}
+{% endschema %}

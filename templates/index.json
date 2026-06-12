@@ -1,0 +1,74 @@
+{
+  "sections": {
+    "hero": {
+      "type": "hero-banner",
+      "settings": {
+        "eyebrow": "Guerrilla Art Since 1986",
+        "heading": "Robbie Conal's Art Attack",
+        "text": "Politically charged prints, limited edition posters, drawings, and books from America's premier guerrilla artist.",
+        "cta_label": "Shop All Works",
+        "cta_url": "/collections/all",
+        "cta2_label": "About Robbie",
+        "cta2_url": "/pages/about"
+      }
+    },
+    "featured": {
+      "type": "featured-collection",
+      "settings": {
+        "collection": "featured-items",
+        "title": "Featured Works",
+        "products_to_show": 8,
+        "show_view_all": true,
+        "dark_bg": false
+      }
+    },
+    "collections": {
+      "type": "collection-list",
+      "blocks": {
+        "limited": {
+          "type": "collection",
+          "settings": { "collection": "limited-edition-prints-by-robbie-conal" }
+        },
+        "posters": {
+          "type": "collection",
+          "settings": { "collection": "frontpage" }
+        },
+        "drawings": {
+          "type": "collection",
+          "settings": { "collection": "drawings-paintings-by-robbie-conal" }
+        },
+        "books": {
+          "type": "collection",
+          "settings": { "collection": "books-by-robbie-conal" }
+        }
+      },
+      "block_order": ["limited", "posters", "drawings", "books"],
+      "settings": {
+        "title": "Browse by Category",
+        "dark_bg": true
+      }
+    },
+    "about": {
+      "type": "about-strip",
+      "settings": {
+        "eyebrow": "About the Artist",
+        "title": "Forty Years of Guerrilla Art",
+        "body": "<p>Robbie Conal began plastering his sardonic portraits of politicians on city walls during the Reagan administration in 1986. Using a network of volunteers, he's wheatpasted thousands of posters on city streets across America.</p><p>His work has addressed censorship, the Iraq War, climate change, and the ever-present circus of American politics — always with unflinching wit and unforgettable imagery.</p>",
+        "cta_label": "Learn More",
+        "cta_url": "/pages/about",
+        "dark_bg": true
+      }
+    },
+    "new-work": {
+      "type": "featured-collection",
+      "settings": {
+        "collection": "limited-edition-prints-by-robbie-conal",
+        "title": "Limited Edition Prints",
+        "products_to_show": 4,
+        "show_view_all": true,
+        "dark_bg": false
+      }
+    }
+  },
+  "order": ["hero", "featured", "collections", "about", "new-work"]
+}

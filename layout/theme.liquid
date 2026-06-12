@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="{{ request.locale.iso_code }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <title>
+    {%- if page_title == shop.name -%}
+      {{ shop.name }} — Guerrilla Art
+    {%- else -%}
+      {{ page_title }} — {{ shop.name }}
+    {%- endif -%}
+  </title>
+
+  {%- if page_description -%}
+    <meta name="description" content="{{ page_description | escape }}">
+  {%- endif -%}
+
+  <link rel="canonical" href="{{ canonical_url }}">
+
+  {%- if settings.favicon != blank -%}
+    <link rel="icon" type="image/png" href="{{ settings.favicon | image_url: width: 32 }}">
+  {%- endif -%}
+
+  <!-- Open Graph -->
+  <meta property="og:site_name" content="{{ shop.name }}">
+  <meta property="og:url" content="{{ canonical_url }}">
+  <meta property="og:title" content="{{ page_title | escape }}">
+  <meta property="og:type" content="website">
+  {%- if page_image -%}
+    <meta property="og:image" content="{{ page_image | image_url: width: 1200 }}">
+  {%- endif -%}
+  {%- if page_description -%}
+    <meta property="og:description" content="{{ page_description | escape }}">
+  {%- endif -%}
+
+  {{ content_for_header }}
+
+  {{ 'theme.css' | asset_url | stylesheet_tag }}
+</head>
+
+<body class="template-{{ template.name }}">
+
+  {%- sections 'header-group' -%}
+
+  <main id="main-content" tabindex="-1">
+    {{ content_for_layout }}
+  </main>
+
+  {%- sections 'footer-group' -%}
+
+  <!-- Mobile nav drawer -->
+  <nav class="mobile-nav" aria-label="Mobile navigation">
+    <div class="mobile-nav-overlay"></div>
+    <div class="mobile-nav-drawer">
+      <div class="mobile-nav-close">
+        <button aria-label="Close menu">&#x2715;</button>
+      </div>
+      <ul class="mobile-nav-list">
+        <li><a href="/">Home</a></li>
+        <li>
+          <details>
+            <summary>Shop</summary>
+            <ul class="mobile-nav-sub">
+              <li><a href="/collections/all">All Products</a></li>
+              <li><a href="/collections/featured-items">Featured Items</a></li>
+              <li><a href="/collections/limited-edition-prints-by-robbie-conal">Limited Edition Prints</a></li>
+              <li><a href="/collections/frontpage">Posters</a></li>
+              <li><a href="/collections/drawings-paintings-by-robbie-conal">Drawings &amp; Paintings</a></li>
+              <li><a href="/collections/books-by-robbie-conal">Books</a></li>
+            </ul>
+          </details>
+        </li>
+        <li><a href="/pages/about">About</a></li>
+        <li><a href="/pages/contact">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <script>
+    {%- if product.variants -%}
+      window.__variantData = {{ product.variants | json }};
+    {%- endif -%}
+  </script>
+
+  {{ 'theme.js' | asset_url | script_tag }}
+</body>
+</html>

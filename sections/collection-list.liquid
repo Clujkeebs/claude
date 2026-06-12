@@ -1,0 +1,85 @@
+<section class="section{% if section.settings.dark_bg %} section--dark{% endif %}">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">{{ section.settings.title | default: 'Browse Collections' }}</h2>
+    </div>
+
+    <div class="collection-grid">
+      {%- for block in section.blocks -%}
+        {%- assign col = block.settings.collection -%}
+        {%- if col != blank -%}
+          <a href="{{ col.url }}" class="collection-card" {{ block.shopify_attributes }}>
+            <div class="collection-card__image">
+              {%- if col.image -%}
+                <img
+                  src="{{ col.image | image_url: width: 600 }}"
+                  alt="{{ col.image.alt | default: col.title | escape }}"
+                  loading="lazy"
+                  width="600"
+                >
+              {%- elsif col.products.first.featured_image -%}
+                <img
+                  src="{{ col.products.first.featured_image | image_url: width: 600 }}"
+                  alt="{{ col.title | escape }}"
+                  loading="lazy"
+                  width="600"
+                >
+              {%- endif -%}
+            </div>
+            <div class="collection-card__overlay"></div>
+            <div class="collection-card__content">
+              <h3 class="collection-card__title">{{ col.title }}</h3>
+              <p class="collection-card__count">{{ col.products_count }} works</p>
+            </div>
+          </a>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Collection List",
+  "tag": "section",
+  "max_blocks": 6,
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Section title",
+      "default": "Browse Collections"
+    },
+    {
+      "type": "checkbox",
+      "id": "dark_bg",
+      "default": false,
+      "label": "Dark background"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "collection",
+      "name": "Collection",
+      "settings": [
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "Collection"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Collection List",
+      "category": "Collection",
+      "blocks": [
+        { "type": "collection" },
+        { "type": "collection" },
+        { "type": "collection" }
+      ]
+    }
+  ]
+}
+{% endschema %}

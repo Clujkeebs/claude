@@ -1,0 +1,13 @@
+{
+  "name": "Header group",
+  "sections": {
+    "header": {
+      "type": "header",
+      "settings": {
+        "announcement_text": "Free shipping on orders over $100",
+        "announcement_link": "/collections/all"
+      }
+    }
+  },
+  "order": ["header"]
+}

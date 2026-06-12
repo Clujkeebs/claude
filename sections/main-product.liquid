@@ -1,0 +1,131 @@
+<div class="container">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/">Home</a>
+    <span class="breadcrumb__sep" aria-hidden="true">/</span>
+    {%- if product.collections.first -%}
+      <a href="{{ product.collections.first.url }}">{{ product.collections.first.title }}</a>
+      <span class="breadcrumb__sep" aria-hidden="true">/</span>
+    {%- else -%}
+      <a href="/collections/all">Shop</a>
+      <span class="breadcrumb__sep" aria-hidden="true">/</span>
+    {%- endif -%}
+    <span aria-current="page">{{ product.title }}</span>
+  </nav>
+
+  <div class="product-main">
+
+    <!-- Gallery -->
+    <div class="product-gallery">
+      <div class="product-gallery__main">
+        <img
+          id="product-main-image"
+          src="{{ product.featured_image | image_url: width: 900 }}"
+          alt="{{ product.featured_image.alt | default: product.title | escape }}"
+          loading="eager"
+          fetchpriority="high"
+          width="900"
+        >
+      </div>
+      {%- if product.images.size > 1 -%}
+        <div class="product-gallery__thumbs">
+          {%- for image in product.images -%}
+            <button
+              class="product-gallery__thumb{% if forloop.first %} active{% endif %}"
+              data-src="{{ image | image_url: width: 900 }}"
+              aria-label="View image {{ forloop.index }}"
+            >
+              <img
+                src="{{ image | image_url: width: 140 }}"
+                alt="{{ image.alt | escape }}"
+                loading="lazy"
+                width="70"
+                height="70"
+              >
+            </button>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+    </div>
+
+    <!-- Product info -->
+    <div class="product-info">
+      {%- if product.collections.first -%}
+        <p class="product-info__collection">{{ product.collections.first.title }}</p>
+      {%- endif -%}
+
+      <h1 class="product-info__title">{{ product.title }}</h1>
+
+      <p class="product-info__price" data-product-price>
+        {%- if product.compare_at_price > product.price -%}
+          <s>{{ product.compare_at_price | money }}</s>
+        {%- endif -%}
+        {{ product.price | money }}
+      </p>
+
+      <form action="/cart/add" method="post" data-add-to-cart-form>
+        {%- if product.variants.size > 1 -%}
+          <div class="product-variants">
+            <label class="variant-label" for="variant-select">
+              {{ product.options.first }}
+            </label>
+            <select
+              id="variant-select"
+              name="id"
+              class="variant-select"
+              data-variant-select
+            >
+              {%- for variant in product.variants -%}
+                <option
+                  value="{{ variant.id }}"
+                  {%- unless variant.available %} disabled{%- endunless -%}
+                >
+                  {{ variant.title }}
+                  {%- unless variant.available %} — Sold out{%- endunless %}
+                </option>
+              {%- endfor -%}
+            </select>
+          </div>
+        {%- else -%}
+          <input type="hidden" name="id" data-variant-id value="{{ product.variants.first.id }}">
+        {%- endif -%}
+
+        <div class="product-add-form">
+          <div class="qty-selector">
+            <button type="button" class="qty-btn qty-dec" aria-label="Decrease quantity">&#8722;</button>
+            <input
+              type="number"
+              name="quantity"
+              class="qty-input"
+              value="1"
+              min="1"
+              aria-label="Quantity"
+            >
+            <button type="button" class="qty-btn qty-inc" aria-label="Increase quantity">&#43;</button>
+          </div>
+
+          {%- if product.available -%}
+            <button type="submit" class="btn btn--solid btn--full" data-add-to-cart>
+              Add to Cart &mdash; {{ product.price | money }}
+            </button>
+          {%- else -%}
+            <button type="button" class="btn btn--full" disabled>Sold Out</button>
+          {%- endif -%}
+        </div>
+      </form>
+
+      {%- if product.description != blank -%}
+        <div class="product-description">
+          {{ product.description }}
+        </div>
+      {%- endif -%}
+    </div>
+
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Product",
+  "settings": []
+}
+{% endschema %}

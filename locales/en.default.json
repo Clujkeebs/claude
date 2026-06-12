@@ -1,0 +1,33 @@
+{
+  "general": {
+    "password_page": {
+      "login_form_heading": "Enter password to continue",
+      "login_form_password_label": "Password",
+      "login_form_password_placeholder": "Your password",
+      "login_form_submit": "Enter",
+      "login_form_error": "Wrong password. Please try again."
+    }
+  },
+  "products": {
+    "product": {
+      "add_to_cart": "Add to Cart",
+      "sold_out": "Sold Out",
+      "view": "View Work"
+    }
+  },
+  "cart": {
+    "general": {
+      "title": "Your Cart",
+      "checkout": "Checkout",
+      "empty": "Your cart is empty.",
+      "continue_shopping": "Continue Shopping",
+      "subtotal": "Subtotal",
+      "shipping_note": "Shipping calculated at checkout"
+    }
+  },
+  "accessibility": {
+    "skip_to_content": "Skip to content",
+    "close_menu": "Close menu",
+    "open_menu": "Open menu"
+  }
+}

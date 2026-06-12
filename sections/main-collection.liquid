@@ -1,0 +1,64 @@
+<div class="container">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/">Home</a>
+    <span class="breadcrumb__sep" aria-hidden="true">/</span>
+    <a href="/collections/all">Shop</a>
+    <span class="breadcrumb__sep" aria-hidden="true">/</span>
+    <span aria-current="page">{{ collection.title }}</span>
+  </nav>
+
+  <div class="collection-header">
+    <h1 class="collection-header__title">{{ collection.title }}</h1>
+    {%- if collection.description != blank -%}
+      <p class="collection-header__desc">{{ collection.description }}</p>
+    {%- endif -%}
+  </div>
+
+  <div class="collection-sort">
+    <p class="collection-count">{{ collection.products_count }} works</p>
+    <select class="sort-select" aria-label="Sort products" onchange="location.href=this.value">
+      {%- assign sort_by = collection.sort_by | default: collection.default_sort_by -%}
+      <option value="{{ collection.url }}?sort_by=manual"
+        {%- if sort_by == 'manual' %} selected{%- endif -%}>
+        Featured
+      </option>
+      <option value="{{ collection.url }}?sort_by=price-ascending"
+        {%- if sort_by == 'price-ascending' %} selected{%- endif -%}>
+        Price: Low to High
+      </option>
+      <option value="{{ collection.url }}?sort_by=price-descending"
+        {%- if sort_by == 'price-descending' %} selected{%- endif -%}>
+        Price: High to Low
+      </option>
+      <option value="{{ collection.url }}?sort_by=title-ascending"
+        {%- if sort_by == 'title-ascending' %} selected{%- endif -%}>
+        A–Z
+      </option>
+      <option value="{{ collection.url }}?sort_by=created-descending"
+        {%- if sort_by == 'created-descending' %} selected{%- endif -%}>
+        Newest
+      </option>
+    </select>
+  </div>
+
+  {%- if collection.products.size > 0 -%}
+    <div class="product-grid">
+      {%- for product in collection.products -%}
+        {%- render 'card-product', product: product -%}
+      {%- endfor -%}
+    </div>
+
+    {%- render 'pagination', paginate: paginate -%}
+  {%- else -%}
+    <p style="text-align:center; padding: 4rem 0; color: var(--text-muted);">
+      No products found in this collection.
+    </p>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "Collection",
+  "settings": []
+}
+{% endschema %}

@@ -1,0 +1,98 @@
+<section class="section{% if section.settings.dark_bg %} section--dark{% endif %}">
+  <div class="container">
+    <div class="about-strip{% if section.settings.image_right %} about-strip--reversed{% endif %}">
+      {%- if section.settings.image != blank -%}
+        <div class="about-strip__image">
+          <img
+            src="{{ section.settings.image | image_url: width: 800 }}"
+            alt="{{ section.settings.image.alt | escape }}"
+            loading="lazy"
+            width="800"
+          >
+        </div>
+      {%- endif -%}
+      <div class="about-strip__text">
+        {%- if section.settings.eyebrow != blank -%}
+          <p class="about-strip__eyebrow">{{ section.settings.eyebrow }}</p>
+        {%- endif -%}
+        {%- if section.settings.title != blank -%}
+          <h2 class="about-strip__title">{{ section.settings.title }}</h2>
+        {%- endif -%}
+        {%- if section.settings.body != blank -%}
+          <div class="about-strip__body">{{ section.settings.body }}</div>
+        {%- endif -%}
+        {%- if section.settings.cta_label != blank -%}
+          <a href="{{ section.settings.cta_url | default: '/pages/about' }}" class="btn">
+            {{ section.settings.cta_label }}
+          </a>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .about-strip--reversed { direction: rtl; }
+  .about-strip--reversed > * { direction: ltr; }
+</style>
+
+{% schema %}
+{
+  "name": "About Strip",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "checkbox",
+      "id": "image_right",
+      "default": false,
+      "label": "Image on right"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow text",
+      "default": "About the Artist"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Heading",
+      "default": "Forty Years of Guerrilla Art"
+    },
+    {
+      "type": "richtext",
+      "id": "body",
+      "label": "Body text",
+      "default": "<p>Robbie Conal began plastering his sardonic portraits of politicians on city walls during the Reagan administration in 1986. His work addresses censorship, war, social injustice, and the environment.</p>"
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Button label",
+      "default": "Learn More"
+    },
+    {
+      "type": "url",
+      "id": "cta_url",
+      "label": "Button link"
+    },
+    {
+      "type": "checkbox",
+      "id": "dark_bg",
+      "default": true,
+      "label": "Dark background"
+    }
+  ],
+  "presets": [
+    {
+      "name": "About Strip",
+      "category": "Image"
+    }
+  ]
+}
+{% endschema %}
