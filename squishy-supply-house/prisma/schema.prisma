@@ -1,0 +1,160 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String?
+  priceCents  Int
+  imageUrl    String
+  extraImages String[] @default([])
+  imageAlt    String?
+  stock       Int      @default(0)
+  active      Boolean  @default(true)
+  sortOrder   Int      @default(0)
+
+  // Dropshipping bookkeeping. Never exposed on the storefront.
+  supplierUrl       String?
+  supplierCostCents Int?
+  supplierNote      String?
+
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+
+  @@index([active, sortOrder])
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+  token     String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  items     CartItem[]
+
+  @@index([updatedAt])
+}
+
+model CartItem {
+  id        String  @id @default(cuid())
+  cartId    String
+  productId String
+  quantity  Int
+  cart      Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, productId])
+  @@index([cartId])
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  FULFILLED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentProviderName {
+  STRIPE
+  PAYPAL
+}
+
+model Order {
+  id     String @id @default(cuid())
+  seq    Int    @unique @default(autoincrement())
+  number String @unique
+
+  email    String
+  status   OrderStatus         @default(PENDING)
+  provider PaymentProviderName
+
+  // Provider's own identifier for the checkout attempt (Stripe session, PayPal order).
+  providerRef String? @unique
+
+  subtotalCents Int
+  shippingCents Int @default(0)
+  totalCents    Int
+
+  shippingName       String
+  shippingLine1      String
+  shippingLine2      String?
+  shippingCity       String
+  shippingState      String
+  shippingPostalCode String
+  shippingCountry    String  @default("US")
+
+  note String?
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  paidAt      DateTime?
+  fulfilledAt DateTime?
+  items       OrderItem[]
+
+  @@index([status, createdAt])
+  @@index([email])
+}
+
+model OrderItem {
+  id      String @id @default(cuid())
+  orderId String
+
+  // Snapshotted so historic orders survive product edits and deletions.
+  productId    String?
+  name         String
+  slug         String
+  imageUrl     String
+  unitCents    Int
+  quantity     Int
+  lineCents    Int
+
+  order   Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+}
+
+model WebhookEvent {
+  id          String              @id @default(cuid())
+  provider    PaymentProviderName
+  eventId     String
+  processedAt DateTime            @default(now())
+
+  @@unique([provider, eventId])
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  lastLoginAt  DateTime?
+}
+
+model RateLimitHit {
+  id        String   @id @default(cuid())
+  key       String
+  createdAt DateTime @default(now())
+
+  @@index([key, createdAt])
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}

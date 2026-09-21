@@ -1,0 +1,171 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Design tokens. The single source of truth is DESIGN.md — change both.
+   Spacing intentionally reuses Tailwind's 4px scale: the steps in DESIGN.md
+   map to 1, 2, 3, 4, 6, 8, 12, 16, 24, 32.
+--------------------------------------------------------------------------- */
+@theme {
+  --color-plum-900: #2a1338;
+  --color-plum-700: #3b1d4f;
+  --color-plum-500: #9a6fd4;
+  --color-plum-100: #efe7f7;
+
+  --color-pink-500: #ef6d9b;
+  --color-pink-700: #b8386b;
+  --color-blue-500: #6bb3e5;
+  --color-blue-700: #2c7cb5;
+
+  --color-paper: #fdfbf7;
+  --color-surface: #ffffff;
+  --color-border: #e6dfea;
+  --color-muted: #6b5b75;
+  --color-success-700: #2f6d4f;
+  --color-danger-700: #a32f32;
+
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-body: var(--font-karla), ui-sans-serif, system-ui, sans-serif;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: clamp(1.0625rem, 0.3vw + 1rem, 1.125rem);
+  --text-xl: clamp(1.25rem, 0.5vw + 1.1rem, 1.375rem);
+  --text-2xl: clamp(1.5rem, 1vw + 1.25rem, 1.75rem);
+  --text-3xl: clamp(1.875rem, 2vw + 1.4rem, 2.5rem);
+  --text-4xl: clamp(2.25rem, 3.5vw + 1.5rem, 3.5rem);
+
+  --radius-input: 10px;
+  --radius-card: 14px;
+  --radius-frame: 18px;
+
+  --shadow-card: 0 1px 2px rgb(42 19 56 / 0.06);
+
+  --ease-out-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-plum-900);
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-variation-settings: "SOFT" 40, "WONK" 1;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* 16px minimum on mobile controls stops iOS Safari zooming on focus. */
+  input,
+  select,
+  textarea {
+    font-family: inherit;
+    font-size: max(16px, var(--text-base));
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-plum-700);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  ::selection {
+    background-color: var(--color-plum-100);
+    color: var(--color-plum-900);
+  }
+
+  /* Anything that scrolls into view sits below the sticky header. */
+  [id] {
+    scroll-margin-top: 6rem;
+  }
+}
+
+@layer components {
+  .container-page {
+    width: 100%;
+    max-width: 1200px;
+    margin-inline: auto;
+    padding-inline: 20px;
+  }
+
+  @media (min-width: 768px) {
+    .container-page {
+      padding-inline: 32px;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .container-page {
+      padding-inline: 48px;
+    }
+  }
+
+  .container-prose {
+    width: 100%;
+    max-width: 720px;
+    margin-inline: auto;
+  }
+
+  /* The one ornament the system allows: a short pink rule under a heading. */
+  .rule-accent::after {
+    content: "";
+    display: block;
+    width: 48px;
+    height: 2px;
+    margin-top: 12px;
+    background-color: var(--color-pink-500);
+    border-radius: 999px;
+  }
+
+  .skip-link {
+    position: absolute;
+    left: 12px;
+    top: -60px;
+    z-index: 100;
+    padding: 12px 16px;
+    background: var(--color-plum-700);
+    color: #fff;
+    border-radius: var(--radius-input);
+    transition: top 150ms var(--ease-out-soft);
+  }
+
+  .skip-link:focus {
+    top: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
