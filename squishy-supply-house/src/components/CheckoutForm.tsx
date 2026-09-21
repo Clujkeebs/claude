@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useId, useState } from "react";
 import { useCart } from "@/components/CartProvider";
@@ -10,6 +9,7 @@ import { copy } from "@/content/copy";
 import { cn } from "@/lib/cn";
 import { formatMoney } from "@/lib/money";
 import { checkoutSchema } from "@/lib/validation";
+import { ProductImage } from "@/components/ProductImage";
 
 type Fields = {
   email: string;
@@ -260,7 +260,7 @@ export function CheckoutForm({
             {cart.lines.map((line) => (
               <li key={line.productId} className="flex items-center gap-3">
                 <div className="relative size-14 shrink-0 overflow-hidden rounded-[--radius-input] border border-border bg-surface">
-                  <Image
+                  <ProductImage
                     src={line.imageUrl}
                     alt={line.imageAlt}
                     fill

@@ -14,7 +14,9 @@
     "db:studio": "prisma studio",
     "seed:demo": "tsx prisma/seed-demo.ts",
     "verify:payments": "tsx scripts/verify-payments.ts",
-    "check": "npm run typecheck && npm run lint"
+    "check": "npm run typecheck && npm run lint",
+    "verify:ui": "tsx scripts/verify-ui.ts",
+    "verify": "npm run verify:payments && npm run verify:ui"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
@@ -38,6 +40,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
+    "playwright": "^1.63.0",
     "prisma": "^6.19.3",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",

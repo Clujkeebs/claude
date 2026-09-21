@@ -1,9 +1,9 @@
-import Image from "next/image";
 import Link from "next/link";
 import { copy } from "@/content/copy";
 import { cn } from "@/lib/cn";
 import { formatMoney } from "@/lib/money";
 import type { ProductCardData } from "@/lib/products";
+import { ProductImage } from "@/components/ProductImage";
 
 const LOW_STOCK_AT = 3;
 
@@ -29,7 +29,7 @@ export function ProductCard({
             "transition-[border-color,box-shadow] duration-150 group-hover:border-plum-500",
           )}
         >
-          <Image
+          <ProductImage
             src={product.imageUrl}
             alt={product.imageAlt}
             fill

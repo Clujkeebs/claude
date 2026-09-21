@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useCart, type CartLine } from "@/components/CartProvider";
@@ -8,6 +7,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { ButtonLink } from "@/components/ui/Button";
 import { copy } from "@/content/copy";
 import { formatMoney } from "@/lib/money";
+import { ProductImage } from "@/components/ProductImage";
 
 export function CartView() {
   const { cart, hydrated, pending, setQuantity, remove, add } = useCart();
@@ -61,7 +61,7 @@ export function CartView() {
                 href={`/products/${line.slug}`}
                 className="relative size-24 shrink-0 overflow-hidden rounded-[--radius-card] border border-border bg-surface sm:size-28"
               >
-                <Image
+                <ProductImage
                   src={line.imageUrl}
                   alt={line.imageAlt}
                   fill

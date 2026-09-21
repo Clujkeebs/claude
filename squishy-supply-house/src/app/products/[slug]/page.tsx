@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AddToCart } from "@/components/AddToCart";
@@ -8,6 +7,7 @@ import { siteUrl } from "@/lib/env";
 import { formatMoney } from "@/lib/money";
 import { getProductBySlug, listProductSlugs } from "@/lib/products";
 import { site } from "@/lib/site";
+import { ProductImage } from "@/components/ProductImage";
 
 export const revalidate = 300;
 export const dynamicParams = true;
@@ -150,7 +150,7 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
       <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
         <div>
           <div className="relative aspect-square overflow-hidden rounded-[--radius-frame] border border-border bg-surface">
-            <Image
+            <ProductImage
               src={product.imageUrl}
               alt={product.imageAlt}
               fill
@@ -166,7 +166,7 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
                   key={src}
                   className="relative aspect-square overflow-hidden rounded-[--radius-card] border border-border bg-surface"
                 >
-                  <Image
+                  <ProductImage
                     src={src}
                     alt=""
                     fill

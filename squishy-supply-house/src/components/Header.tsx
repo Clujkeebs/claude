@@ -36,8 +36,8 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-paper/95 backdrop-blur-sm">
-      <div className="container-page flex h-16 items-center justify-between gap-4 md:h-20">
-        <LogoLink height={40} priority />
+      <div className="container-page flex h-[4.5rem] items-center justify-between gap-4 md:h-24">
+        <LogoLink height={48} priority />
 
         <nav aria-label="Main" className="hidden md:block">
           <ul className="flex items-center gap-1">
@@ -83,12 +83,12 @@ export function Header() {
             tabIndex={-1}
             aria-hidden="true"
             onClick={() => setOpen(false)}
-            className="fixed inset-0 top-16 z-40 bg-plum-900/25"
+            className="fixed inset-0 top-[4.5rem] z-40 bg-plum-900/25"
           />
           <div
             ref={panelRef}
             id="mobile-menu"
-            className="fixed inset-x-0 top-16 z-50 border-b border-border bg-paper shadow-[0_8px_24px_rgb(42_19_56/0.08)]"
+            className="fixed inset-x-0 top-[4.5rem] z-50 border-b border-border bg-paper shadow-[0_8px_24px_rgb(42_19_56/0.08)]"
           >
             <nav aria-label="Mobile" className="container-page py-2">
               <ul className="flex flex-col">
@@ -130,6 +130,7 @@ function CartLink() {
       <span className="hidden sm:inline">Cart</span>
       <span
         key={addCount}
+        data-testid="cart-count"
         aria-hidden="true"
         className={cn(
           "inline-flex min-w-6 items-center justify-center rounded-full bg-plum-700 px-1.5 py-0.5 text-xs font-medium text-white",

@@ -1,6 +1,5 @@
 import { timingSafeEqual } from "node:crypto";
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ClearCartOnMount } from "@/components/ClearCartOnMount";
@@ -10,6 +9,7 @@ import { formatMoney } from "@/lib/money";
 import { getOrderByNumber, markOrderPaid } from "@/lib/orders";
 import { providerByName } from "@/lib/payments";
 import { site } from "@/lib/site";
+import { ProductImage } from "@/components/ProductImage";
 
 export const dynamic = "force-dynamic";
 
@@ -91,7 +91,7 @@ export default async function OrderPage(props: PageProps<"/orders/[number]">) {
             {order.items.map((item) => (
               <li key={item.id} className="flex items-center gap-4 py-4">
                 <div className="relative size-14 shrink-0 overflow-hidden rounded-[--radius-input] border border-border bg-surface">
-                  <Image
+                  <ProductImage
                     src={item.imageUrl}
                     alt=""
                     fill

@@ -11,7 +11,7 @@ const groups = [
 
 export function Footer() {
   return (
-    <footer className="mt-24 border-t border-border bg-plum-100/40">
+    <footer className="border-t border-border bg-plum-100/40">
       <div className="container-page py-12 md:py-16">
         <div className="grid gap-10 md:grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,1fr))] md:gap-8">
           <div>

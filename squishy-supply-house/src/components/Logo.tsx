@@ -24,7 +24,8 @@ export function LogoLink({ height = 44, priority = false }: { height?: number; p
   return (
     <Link
       href="/"
-      className="inline-flex shrink-0 items-center rounded-[--radius-input]"
+      // min-h-11 keeps the tap target at 44px even when the mark is smaller.
+      className="inline-flex min-h-11 shrink-0 items-center rounded-[--radius-input]"
       aria-label={`${site.name} — home`}
     >
       <Logo height={height} priority={priority} />
