@@ -208,6 +208,32 @@ Migrations run on start (`prisma migrate deploy`), so a deploy can never serve a
 schema it does not have. The healthcheck at `/api/health` fails closed when
 Postgres is unreachable, so a broken deploy will not replace a working one.
 
+### Railway specifics worth knowing
+
+Three things about Railway shaped how this app is configured. All three cost a
+failed deploy to find.
+
+**The private network is not available during builds.** `postgres.railway.internal`
+only resolves at runtime, so nothing can query the database at build time. That
+is why the home page and sitemap render per request and `generateStaticParams`
+returns an empty array — product pages are still cached, just generated on first
+request instead of during the build.
+
+**`.next/cache` persists between builds.** Turbopack's build cache lives in
+`.next/cache/turbopack`, which Railway mounts as a persistent volume. A cache
+written by a failed build gets reused by the next one and keeps reporting the
+old error long after the cause is fixed, so
+`experimental.turbopackFileSystemCacheForBuild` is disabled.
+
+**Setting `NODE_ENV=production` makes `npm ci` skip devDependencies**, which
+removes the Tailwind PostCSS plugin and the Prisma CLI that the build and start
+commands need. `NIXPACKS_INSTALL_CMD` is set to `npm ci --include=dev` so the
+install is complete regardless.
+
+Also set `NIXPACKS_NODE_VERSION=22`. Nixpacks otherwise defaults to Node 18,
+which Next 16 refuses to build on; `engines.node` in package.json documents the
+same requirement for every other builder.
+
 ### Backups
 
 Railway Postgres does not back up automatically on every plan. In the Postgres
