@@ -44,7 +44,7 @@ export default async function ShopPage(props: PageProps<"/shop">) {
       )}
 
       {products.length > 0 ? (
-        <ProductGrid products={products} />
+        <ProductGrid products={products} headingLevel="h2" />
       ) : search ? (
         <EmptyState
           heading={copy.shop.noResultsHeading}

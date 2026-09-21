@@ -65,10 +65,14 @@ Verified pairings:
 
 ## Type
 
-**Display — Fraunces.** A variable serif with `SOFT` and `WONK` axes. Set at
-`SOFT 40`, `WONK 1`, weight 600. The soft axis rounds the terminals, which
-picks up the rounded forms in the logo without resorting to a bubble font. Used
-for page headings, product names on detail pages, and prices.
+**Display — Fraunces.** A variable serif, set at `SOFT 40`, weight 600. The
+soft axis rounds the terminals, which picks up the rounded forms in the logo
+without resorting to a bubble font. Used for page headings, product names on
+detail pages, and prices.
+
+Only the `SOFT` axis is loaded. Including `WONK` and `opsz` as well doubled the
+font file to 118KB, and since the font sits on the critical path that cost more
+than the quirky alternates were worth.
 
 **Body — Karla.** A grotesque with slightly odd, friendly details that hold up
 at 14–16px. Used for everything else: navigation, body copy, buttons, form
@@ -131,7 +135,8 @@ image is normalised by the interface rather than trusted:
 - Fixed 1:1 aspect ratio, `object-fit: cover`, centred.
 - White `--color-surface` frame with 14px radius and a 1px border, so mixed
   supplier backgrounds sit on one consistent field.
-- `next/image` with explicit sizes, `quality={82}`, remote hosts allowlisted in
+- `next/image` with explicit sizes at the default quality of 75 (Next 16 restricts
+  `images.qualities` to that single value unless widened), remote hosts allowlisted in
   `next.config.ts`. First row of the grid is priority-loaded; the rest lazy.
 - Alt text is required at the data layer, defaulting to the product name.
 

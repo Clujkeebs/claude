@@ -10,10 +10,13 @@ const LOW_STOCK_AT = 3;
 export function ProductCard({
   product,
   priority = false,
+  headingLevel = "h3",
 }: {
   product: ProductCardData;
   priority?: boolean;
+  headingLevel?: "h2" | "h3";
 }) {
+  const Heading = headingLevel;
   const soldOut = product.stock <= 0;
   const low = !soldOut && product.stock <= LOW_STOCK_AT;
 
@@ -53,9 +56,9 @@ export function ProductCard({
         </div>
 
         <div className="mt-3 flex items-baseline justify-between gap-3">
-          <h3 className="text-base leading-snug font-medium text-plum-900 group-hover:underline group-hover:decoration-plum-500 group-hover:underline-offset-4">
+          <Heading className="text-base leading-snug font-medium text-plum-900 group-hover:underline group-hover:decoration-plum-500 group-hover:underline-offset-4">
             {product.name}
-          </h3>
+          </Heading>
           <p className="font-display shrink-0 text-lg text-plum-900">
             {formatMoney(product.priceCents)}
           </p>
@@ -65,12 +68,29 @@ export function ProductCard({
   );
 }
 
-export function ProductGrid({ products }: { products: ProductCardData[] }) {
+/**
+ * The first row is priority-loaded: the first card's image is the LCP element
+ * on both the home page and the shop, and measurement showed the priority hint
+ * starting it materially earlier than lazy loading did.
+ */
+export function ProductGrid({
+  products,
+  headingLevel = "h3",
+  priorityCount = 4,
+}: {
+  products: ProductCardData[];
+  headingLevel?: "h2" | "h3";
+  priorityCount?: number;
+}) {
   return (
     <ul className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {products.map((product, i) => (
         <li key={product.id}>
-          <ProductCard product={product} priority={i < 4} />
+          <ProductCard
+            product={product}
+            priority={i < priorityCount}
+            headingLevel={headingLevel}
+          />
         </li>
       ))}
     </ul>

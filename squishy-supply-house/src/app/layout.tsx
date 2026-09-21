@@ -12,7 +12,10 @@ const fraunces = Fraunces({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-fraunces",
-  axes: ["SOFT", "WONK", "opsz"],
+  axes: ["SOFT"],
+  // Display face only. Not preloaded so it does not compete with the LCP
+  // image for bandwidth; display: swap paints headings in the fallback first.
+  preload: false,
 });
 
 const karla = Karla({

@@ -245,6 +245,37 @@ locally:
 pg_dump "$DATABASE_URL" > backup-$(date +%F).sql
 ```
 
+### Measured performance
+
+Lighthouse mobile, median of five runs against a production build
+(`next start`, simulated Slow 4G):
+
+| Page | Perf | A11y | Best practices | SEO | LCP | CLS | TBT |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Home | 98 | 100 | 100 | 100 | 2.35s | 0 | 32ms |
+| Shop | 98 | 100 | 100 | 100 | 2.43s | 0 | 39ms |
+| Product | 98 | 100 | 100 | 100 | 2.36s | 0 | 31ms |
+
+LCP sits close to the 2.5s line and individual runs range 2.2–2.9s, so treat it
+as met-but-tight rather than comfortable. Measured against a real throttled
+device profile (1.6Mbps, 4× CPU) the same LCP element lands at roughly 670ms —
+the Lighthouse figure is its simulated critical path, not local slowness.
+
+Three findings from that work are baked into the config:
+
+- **AVIF is off.** With `formats: ["image/avif", "image/webp"]` the optimizer
+  stopped answering entirely for any request carrying `Accept: image/avif` —
+  which every browser sends. WebP encodes in about 80ms and saves nearly as
+  much.
+- **The app icon was 210KB.** Palette-quantised to 16KB. It was the single
+  largest asset on the page.
+- **Fraunces loads only its `SOFT` axis and is not preloaded.** All three axes
+  doubled the file to 118KB on the critical path, for a display face that
+  `display: swap` renders in a fallback anyway.
+
+Re-run any of this yourself with `npm run build && npx next start -p 3100`, then
+Lighthouse against `http://localhost:3100`.
+
 ### Performance notes
 
 Product and policy pages are statically prerendered and revalidated every five

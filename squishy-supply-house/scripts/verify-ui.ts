@@ -35,6 +35,18 @@ function section(name: string) {
   console.log(`\n${name}`);
 }
 
+/**
+ * The cart renders a skeleton until its client-side fetch resolves, so every
+ * cart assertion has to wait for that state rather than for a page event.
+ */
+async function waitForCartSettled(page: Page): Promise<void> {
+  await page
+    .locator("li select, :text('Your cart is empty')")
+    .first()
+    .waitFor({ state: "visible", timeout: 15000 })
+    .catch(() => {});
+}
+
 async function hasHorizontalOverflow(page: Page): Promise<boolean> {
   return page.evaluate(
     () => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
@@ -52,7 +64,7 @@ async function run(browser: Browser) {
 
   // --- storefront ---------------------------------------------------------
   section("Storefront");
-  await page.goto(`${BASE}/`, { waitUntil: "networkidle" });
+  await page.goto(`${BASE}/`, { waitUntil: "load" });
   check("home renders an h1", (await page.locator("h1").count()) === 1);
   check(
     "home title is set",
@@ -61,7 +73,7 @@ async function run(browser: Browser) {
   );
   await page.screenshot({ path: `${SHOTS}/home-desktop.png`, fullPage: true });
 
-  await page.goto(`${BASE}/shop`, { waitUntil: "networkidle" });
+  await page.goto(`${BASE}/shop`, { waitUntil: "load" });
   const cards = page.locator("article");
   const cardCount = await cards.count();
   check("shop lists products", cardCount > 0, `found ${cardCount}`);
@@ -71,7 +83,8 @@ async function run(browser: Browser) {
   section("Buying flow");
   await page.locator("article a").first().click();
   await page.waitForURL(/\/products\//, { timeout: 15000 }).catch(() => {});
-  await page.waitForLoadState("networkidle");
+  await page.waitForLoadState("load");
+  await page.waitForTimeout(400);
   check("product page reached", page.url().includes("/products/"), page.url());
   check(
     "breadcrumbs present",
@@ -87,13 +100,15 @@ async function run(browser: Browser) {
     (await badge.textContent()) ?? "empty");
   await page.screenshot({ path: `${SHOTS}/product-desktop.png`, fullPage: true });
 
-  await page.goto(`${BASE}/cart`, { waitUntil: "networkidle" });
+  await page.goto(`${BASE}/cart`, { waitUntil: "load" });
+  await waitForCartSettled(page);
   check("cart shows the line item", (await page.locator("li select").count()) === 1);
   await page.screenshot({ path: `${SHOTS}/cart-desktop.png`, fullPage: true });
 
   await page.getByRole("link", { name: /^checkout$/i }).click();
   await page.waitForURL(/\/checkout/, { timeout: 15000 }).catch(() => {});
-  await page.waitForLoadState("networkidle");
+  await page.waitForLoadState("load");
+  await page.waitForTimeout(400);
   check("checkout reached", page.url().includes("/checkout"));
 
   // Validation must fire before anything is sent.
@@ -124,7 +139,8 @@ async function run(browser: Browser) {
   section("Empty and missing states");
   const fresh = await browser.newContext();
   const freshPage = await fresh.newPage();
-  await freshPage.goto(`${BASE}/cart`, { waitUntil: "networkidle" });
+  await freshPage.goto(`${BASE}/cart`, { waitUntil: "load" });
+  await waitForCartSettled(freshPage);
   check(
     "empty cart has a designed state",
     await freshPage.getByText(/your cart is empty/i).isVisible(),
@@ -142,7 +158,7 @@ async function run(browser: Browser) {
   for (const width of WIDTHS) {
     await page.setViewportSize({ width, height: 900 });
     for (const path of ["/", "/shop", "/cart", "/checkout"]) {
-      await page.goto(`${BASE}${path}`, { waitUntil: "networkidle" });
+      await page.goto(`${BASE}${path}`, { waitUntil: "load" });
       const overflow = await hasHorizontalOverflow(page);
       if (overflow) {
         check(`no horizontal overflow at ${width}px on ${path}`, false);
@@ -152,7 +168,7 @@ async function run(browser: Browser) {
   }
 
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto(`${BASE}/shop`, { waitUntil: "networkidle" });
+  await page.goto(`${BASE}/shop`, { waitUntil: "load" });
   await page.screenshot({ path: `${SHOTS}/shop-mobile.png`, fullPage: true });
 
   const menuButton = page.getByRole("button", { name: /open menu/i });
@@ -167,7 +183,7 @@ async function run(browser: Browser) {
 
   // Tap target sizes on the smallest supported width.
   await page.setViewportSize({ width: 375, height: 812 });
-  await page.goto(`${BASE}/shop`, { waitUntil: "networkidle" });
+  await page.goto(`${BASE}/shop`, { waitUntil: "load" });
   const smallTargets = await page.evaluate(() => {
     const nodes = Array.from(
       document.querySelectorAll("header a, header button, main button"),
@@ -185,7 +201,7 @@ async function run(browser: Browser) {
   // --- accessibility ------------------------------------------------------
   section("Accessibility");
   await page.setViewportSize({ width: 1280, height: 900 });
-  await page.goto(`${BASE}/shop`, { waitUntil: "networkidle" });
+  await page.goto(`${BASE}/shop`, { waitUntil: "load" });
 
   const missingAlt = await page.evaluate(
     () => Array.from(document.images).filter((i) => !i.hasAttribute("alt")).length,
@@ -222,13 +238,13 @@ async function run(browser: Browser) {
   const sitemapBody = (await sitemap?.text()) ?? "";
   check("sitemap lists product URLs", sitemapBody.includes("/products/"));
 
-  await page.goto(`${BASE}/shop`, { waitUntil: "networkidle" });
+  await page.goto(`${BASE}/shop`, { waitUntil: "load" });
   const canonical = await page.getAttribute('link[rel="canonical"]', "href");
   check("canonical URL present", Boolean(canonical), String(canonical));
   const ogImage = await page.getAttribute('meta[property="og:image"]', "content");
   check("open graph image present", Boolean(ogImage), String(ogImage));
 
-  await page.goto(`${BASE}/faq`, { waitUntil: "networkidle" });
+  await page.goto(`${BASE}/faq`, { waitUntil: "load" });
   const faqLd = await page.evaluate(() =>
     Array.from(document.querySelectorAll('script[type="application/ld+json"]'))
       .map((s) => s.textContent ?? "")
@@ -241,7 +257,7 @@ async function run(browser: Browser) {
   const adminCtx = await browser.newContext();
   const admin = await adminCtx.newPage();
 
-  await admin.goto(`${BASE}/admin`, { waitUntil: "networkidle" });
+  await admin.goto(`${BASE}/admin`, { waitUntil: "load" });
   check(
     "admin redirects anonymous visitors",
     admin.url().includes("/admin/login") || admin.url().includes("/admin/setup"),
@@ -280,7 +296,7 @@ async function run(browser: Browser) {
     check("correct password signs in", admin.url().endsWith("/admin"));
   }
 
-  await admin.goto(`${BASE}/admin/products`, { waitUntil: "networkidle" });
+  await admin.goto(`${BASE}/admin/products`, { waitUntil: "load" });
   const startCount = await admin.locator("section[aria-labelledby='catalogue'] li").count();
 
   const probeName = `Verification Probe ${Date.now()}`;
@@ -299,19 +315,19 @@ async function run(browser: Browser) {
   check("adding a product takes under 30 seconds", elapsed < 30, `${elapsed.toFixed(1)}s`);
   await admin.screenshot({ path: `${SHOTS}/admin-products.png`, fullPage: true });
 
-  await admin.goto(`${BASE}/admin/setup`, { waitUntil: "networkidle" });
+  await admin.goto(`${BASE}/admin/setup`, { waitUntil: "load" });
   check(
     "setup route closes once an admin exists",
     admin.url().includes("/admin/login") || admin.url().endsWith("/admin"),
     admin.url(),
   );
 
-  await admin.goto(`${BASE}/admin/orders`, { waitUntil: "networkidle" });
+  await admin.goto(`${BASE}/admin/orders`, { waitUntil: "load" });
   check("orders page renders", (await admin.locator("h2").first().textContent())?.includes("Orders") ?? false);
   await admin.screenshot({ path: `${SHOTS}/admin-orders.png`, fullPage: true });
 
   // The storefront must reflect the new product without a manual cache bust.
-  await page.goto(`${BASE}/shop`, { waitUntil: "networkidle" });
+  await page.goto(`${BASE}/shop`, { waitUntil: "load" });
   check(
     "new product appears on the storefront",
     await page.getByText(probeName).first().isVisible(),
@@ -319,13 +335,13 @@ async function run(browser: Browser) {
 
   // A verification run must not leave stock behind in the catalogue.
   admin.once("dialog", (d) => void d.accept());
-  await admin.goto(`${BASE}/admin/products`, { waitUntil: "networkidle" });
+  await admin.goto(`${BASE}/admin/products`, { waitUntil: "load" });
   await admin
     .locator("li", { hasText: probeName })
     .getByRole("button", { name: /delete/i })
     .click();
   await admin.waitForTimeout(2000);
-  await page.goto(`${BASE}/shop`, { waitUntil: "networkidle" });
+  await page.goto(`${BASE}/shop`, { waitUntil: "load" });
   check(
     "verification product removed again",
     (await page.getByText(probeName).count()) === 0,

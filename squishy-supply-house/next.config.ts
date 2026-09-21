@@ -52,7 +52,13 @@ const nextConfig: NextConfig = {
       protocol: "https" as const,
       hostname,
     })),
-    formats: ["image/avif", "image/webp"],
+    /**
+     * WebP only. AVIF saves perhaps another 15% of bytes but its encoder is
+     * orders of magnitude slower, and on a small container it pins the CPU long
+     * enough that the optimizer stops answering — every browser sends
+     * `Accept: image/avif`, so that would hang the first load of every image.
+     */
+    formats: ["image/webp"],
   },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];

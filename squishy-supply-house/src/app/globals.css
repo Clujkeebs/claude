@@ -75,7 +75,7 @@
   h3,
   h4 {
     font-family: var(--font-display);
-    font-variation-settings: "SOFT" 40, "WONK" 1;
+    font-variation-settings: "SOFT" 40;
     font-weight: 600;
     line-height: 1.15;
     letter-spacing: -0.01em;
