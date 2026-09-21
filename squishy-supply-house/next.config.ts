@@ -41,6 +41,12 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  experimental: {
+    // Railway mounts .next/cache as a persistent volume across builds. A cache
+    // written by a failed build is reused by the next one and keeps failing, so
+    // builds start cold here. Dev keeps its cache.
+    turbopackFileSystemCacheForBuild: false,
+  },
   images: {
     remotePatterns: [...new Set([...defaultImageHosts, ...extraHosts])].map((hostname) => ({
       protocol: "https" as const,
