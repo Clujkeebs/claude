@@ -7,7 +7,12 @@ import { copy } from "@/content/copy";
 import { listProducts } from "@/lib/products";
 import { site } from "@/lib/site";
 
-export const revalidate = 300;
+/**
+ * Rendered per request rather than prerendered. Railway's private network is
+ * not reachable during builds, so a build-time database query cannot work, and
+ * stock levels need to be current anyway.
+ */
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: `${site.name} — slow-rise squishies, free shipping`,

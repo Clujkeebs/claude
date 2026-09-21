@@ -5,16 +5,20 @@ import { AddToCart } from "@/components/AddToCart";
 import { copy } from "@/content/copy";
 import { siteUrl } from "@/lib/env";
 import { formatMoney } from "@/lib/money";
-import { getProductBySlug, listProductSlugs } from "@/lib/products";
+import { getProductBySlug } from "@/lib/products";
 import { site } from "@/lib/site";
 import { ProductImage } from "@/components/ProductImage";
 
 export const revalidate = 300;
 export const dynamicParams = true;
 
+/**
+ * Deliberately empty: the database is unreachable during a Railway build.
+ * dynamicParams renders each product on first request and caches it from
+ * there, and admin edits revalidate the affected path immediately.
+ */
 export async function generateStaticParams() {
-  const slugs = await listProductSlugs().catch(() => []);
-  return slugs.map(({ slug }) => ({ slug }));
+  return [];
 }
 
 export async function generateMetadata(

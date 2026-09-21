@@ -3,7 +3,9 @@ import { policies } from "@/content/legal";
 import { siteUrl } from "@/lib/env";
 import { listProductSlugs } from "@/lib/products";
 
-export const revalidate = 3600;
+// Built per request: the database is unreachable during a Railway build,
+// and a sitemap missing every product is worse than one extra query.
+export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteUrl();
