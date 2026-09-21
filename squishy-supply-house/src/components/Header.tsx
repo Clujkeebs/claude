@@ -15,10 +15,6 @@ export function Header() {
   const toggleRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
-
-  useEffect(() => {
     if (!open) return;
     document.body.style.overflow = "hidden";
     const onKey = (e: KeyboardEvent) => {
@@ -100,6 +96,7 @@ export function Header() {
                   <li key={item.href}>
                     <Link
                       href={item.href}
+                      onClick={() => setOpen(false)}
                       aria-current={isActive(item.href) ? "page" : undefined}
                       className={cn(
                         "flex min-h-14 items-center border-b border-border text-lg last:border-b-0",
@@ -122,18 +119,7 @@ export function Header() {
 }
 
 function CartLink() {
-  const { cart, hydrated } = useCart();
-  const [bump, setBump] = useState(false);
-  const previous = useRef(0);
-
-  useEffect(() => {
-    if (hydrated && cart.count !== previous.current && previous.current !== 0) {
-      setBump(true);
-      const t = setTimeout(() => setBump(false), 220);
-      return () => clearTimeout(t);
-    }
-    previous.current = cart.count;
-  }, [cart.count, hydrated]);
+  const { cart, hydrated, addCount } = useCart();
 
   return (
     <Link
@@ -143,10 +129,11 @@ function CartLink() {
       <CartIcon />
       <span className="hidden sm:inline">Cart</span>
       <span
+        key={addCount}
         aria-hidden="true"
         className={cn(
-          "inline-flex min-w-6 items-center justify-center rounded-full bg-plum-700 px-1.5 py-0.5 text-xs font-medium text-white transition-transform duration-200",
-          bump && "scale-125",
+          "inline-flex min-w-6 items-center justify-center rounded-full bg-plum-700 px-1.5 py-0.5 text-xs font-medium text-white",
+          addCount > 0 && "animate-cart-bump",
           !hydrated && "opacity-0",
         )}
       >

@@ -45,6 +45,11 @@ type CartContextValue = {
   /** True until the first fetch resolves, so the header can render a placeholder. */
   hydrated: boolean;
   pending: boolean;
+  /**
+   * Increments on every add. The header badge keys off it to replay its
+   * animation, which keeps that effect out of render.
+   */
+  addCount: number;
   add: (productId: string, quantity?: number) => Promise<boolean>;
   setQuantity: (productId: string, quantity: number) => Promise<void>;
   remove: (productId: string) => Promise<void>;
@@ -62,6 +67,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<CartSummary>(emptyCart);
   const [hydrated, setHydrated] = useState(false);
   const [pending, setPending] = useState(false);
+  const [addCount, setAddCount] = useState(0);
 
   const refresh = useCallback(async () => {
     try {
@@ -73,9 +79,23 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Loads the server's cart once the page is interactive. Keeping this on the
+  // client is what lets the catalogue pages stay statically rendered.
   useEffect(() => {
-    void refresh();
-  }, [refresh]);
+    let cancelled = false;
+    fetch("/api/cart", { cache: "no-store" })
+      .then((res) => (res.ok ? (res.json() as Promise<CartSummary>) : null))
+      .then((data) => {
+        if (!cancelled && data) setCart(data);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setHydrated(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const mutate = useCallback(
     async (method: string, body: unknown): Promise<boolean> => {
@@ -102,6 +122,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     async (productId: string, quantity = 1) => {
       // Optimistic count bump so the header badge reacts on the same frame.
       setCart((c) => ({ ...c, count: c.count + quantity }));
+      setAddCount((n) => n + 1);
       const ok = await mutate("POST", { productId, quantity });
       if (!ok) await refresh();
       return ok;
@@ -125,8 +146,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   );
 
   const value = useMemo(
-    () => ({ cart, hydrated, pending, add, setQuantity, remove, refresh }),
-    [cart, hydrated, pending, add, setQuantity, remove, refresh],
+    () => ({ cart, hydrated, pending, addCount, add, setQuantity, remove, refresh }),
+    [cart, hydrated, pending, addCount, add, setQuantity, remove, refresh],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

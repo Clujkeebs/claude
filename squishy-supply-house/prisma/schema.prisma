@@ -73,12 +73,20 @@ model Order {
   seq    Int    @unique @default(autoincrement())
   number String @unique
 
+  // Order numbers are sequential and therefore guessable. The confirmation
+  // page and the receipt link require this token, so one customer can never
+  // read another customer's address by incrementing the number.
+  accessToken String @unique
+
   email    String
   status   OrderStatus         @default(PENDING)
   provider PaymentProviderName
 
   // Provider's own identifier for the checkout attempt (Stripe session, PayPal order).
   providerRef String? @unique
+
+  // Lets a confirmed payment empty the right cart without the browser asking.
+  cartToken String?
 
   subtotalCents Int
   shippingCents Int @default(0)
