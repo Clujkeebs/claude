@@ -161,7 +161,10 @@ export async function updateProductAction(
   }
   const stock = formData.get("stock");
   if (stock !== null) raw.stock = stock;
-  if (formData.get("active") !== null) raw.active = formData.get("active") === "on";
+  // The form sends a hidden "false" plus "on" when checked, so both states
+  // arrive. getAll keeps them; get would only ever see the hidden one.
+  const activeValues = formData.getAll("active");
+  if (activeValues.length > 0) raw.active = activeValues.includes("on");
 
   const parsed = productUpdateSchema.safeParse(raw);
   if (!parsed.success) return { error: issuesToMessage(parsed.error.issues) };

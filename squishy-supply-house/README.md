@@ -311,15 +311,17 @@ npm run dev            # in one terminal
 npm run verify         # in another
 ```
 
-`npm run verify:payments` (38 checks) covers the money paths without needing
+`npm run verify:payments` (50 checks) covers the money paths without needing
 live credentials: it signs webhook payloads exactly as Stripe does and posts
 them to the real endpoint. It asserts forged signatures are rejected, replays do
 not double-decrement stock, overselling is flagged rather than silently
-dropped, expired checkouts do not consume stock, and order pages cannot be read
-without their access token. It needs `STRIPE_WEBHOOK_SECRET` set to any value
+dropped, expired checkouts do not consume stock, a partial refund does not void
+a whole order, a webhook arriving before the provider reference is stored still
+finds its order, concurrent cart adds are not lost, and order pages cannot be
+read without their access token. It needs `STRIPE_WEBHOOK_SECRET` set to any value
 that matches the running server.
 
-`npm run verify:ui` (48 checks) drives Chromium through the buying flow and the
+`npm run verify:ui` (50 checks) drives Chromium through the buying flow and the
 admin flow, checks all seven target viewport widths for horizontal overflow,
 and asserts the accessibility and SEO basics. Screenshots land in `.verify/`.
 
@@ -374,6 +376,15 @@ because a refunded dropshipped item usually is not coming back.
 **Rate limiting is database-backed.** Volume is low enough that a row per hit is
 cheap, and it holds across restarts and replicas, which an in-memory counter
 would not.
+
+**Order numbers come from a reserved sequence value.** The row is inserted once
+already carrying its number. An earlier version inserted a placeholder into the
+unique `number` column and updated it afterwards, which made every concurrent
+checkout queue on a single index key.
+
+**Webhooks resolve an order by provider reference or by our own id.** The id is
+sent to both providers as metadata, so a payment confirmed before the reference
+has been stored still finds its order instead of being silently dropped.
 
 **Stock is not reserved at checkout.** An abandoned checkout would otherwise
 hold stock hostage. The trade-off is handled at payment time by the conditional

@@ -109,7 +109,12 @@ class Session {
 
 // --- stripe webhook signing -------------------------------------------------
 
-function stripeEvent(sessionId: string, type: string, eventId: string) {
+function stripeEvent(
+  sessionId: string,
+  type: string,
+  eventId: string,
+  metadata?: Record<string, string>,
+) {
   return {
     id: eventId,
     object: "event",
@@ -122,6 +127,26 @@ function stripeEvent(sessionId: string, type: string, eventId: string) {
         object: "checkout.session",
         payment_status: "paid",
         status: "complete",
+        ...(metadata ? { metadata } : {}),
+      },
+    },
+  };
+}
+
+/** A partial refund: amount_refunded is deliberately less than amount. */
+function stripePartialRefundEvent(eventId: string) {
+  return {
+    id: eventId,
+    object: "event",
+    type: "charge.refunded",
+    created: Math.floor(Date.now() / 1000),
+    data: {
+      object: {
+        id: `ch_${eventId}`,
+        object: "charge",
+        amount: 5000,
+        amount_refunded: 500,
+        payment_intent: `pi_${eventId}`,
       },
     },
   };
@@ -147,7 +172,8 @@ async function postStripeWebhook(
 async function pendingOrder(
   cartToken: string,
   lines: { productId: string; name: string; slug: string; unitCents: number; quantity: number }[],
-  providerRef: string,
+  providerRef: string | null,
+  note?: string,
 ) {
   const subtotalCents = lines.reduce((s, l) => s + l.unitCents * l.quantity, 0);
   const created = await db.order.create({
@@ -158,6 +184,7 @@ async function pendingOrder(
       email: `${TAG}@example.com`,
       provider: "STRIPE",
       providerRef,
+      note: note ?? null,
       subtotalCents,
       shippingCents: 0,
       totalCents: subtotalCents,
@@ -439,6 +466,125 @@ async function main() {
       const right = await fetch(`${BASE}/orders/${order.number}?t=${order.accessToken}`);
       check("correct token is accepted", right.status === 200, `got ${right.status}`);
     }
+  }
+
+  section("Webhook arriving before the provider ref is stored");
+  {
+    const product = await makeProduct(1100, 4);
+    const s = new Session();
+    await s.addToCart(product.id, 2);
+    // providerRef deliberately null: this is the race where Stripe delivers
+    // checkout.session.completed before attachProviderRef has committed.
+    const order = await pendingOrder(s.cartToken, [
+      { productId: product.id, name: `${TAG} item`, slug: product.slug, unitCents: 1100, quantity: 2 },
+    ], null);
+
+    const res = await postStripeWebhook(
+      stripeEvent(`cs_test_${TAG}_meta`, "checkout.session.completed", `evt_${TAG}_meta`, {
+        orderId: order.id,
+      }),
+    );
+    check("webhook accepted", res.status === 200, `got ${res.status}`);
+
+    const paid = await db.order.findUnique({ where: { id: order.id } });
+    check("order resolved via metadata and marked PAID", paid?.status === "PAID",
+      `got ${paid?.status}`);
+    check("provider ref backfilled from the event", paid?.providerRef === `cs_test_${TAG}_meta`,
+      paid?.providerRef ?? "none");
+
+    const after = await db.product.findUnique({ where: { id: product.id } });
+    check("stock still decremented exactly once", after?.stock === 2, `got ${after?.stock}`);
+  }
+
+  section("Partial refunds");
+  {
+    const product = await makeProduct(5000, 3);
+    const s = new Session();
+    await s.addToCart(product.id, 1);
+    const ref = `cs_test_${TAG}_partial`;
+    const order = await pendingOrder(s.cartToken, [
+      { productId: product.id, name: `${TAG} item`, slug: product.slug, unitCents: 5000, quantity: 1 },
+    ], ref);
+
+    await postStripeWebhook(stripeEvent(ref, "checkout.session.completed", `evt_${TAG}_partial_paid`));
+    await postStripeWebhook(stripePartialRefundEvent(`evt_${TAG}_partial_refund`));
+
+    const after = await db.order.findUnique({ where: { id: order.id } });
+    check("a partial refund does not void the whole order", after?.status === "PAID",
+      `got ${after?.status}`);
+  }
+
+  section("Oversell keeps the customer note");
+  {
+    const product = await makeProduct(1200, 2);
+    const s = new Session();
+    await s.addToCart(product.id, 2);
+    const ref = `cs_test_${TAG}_note`;
+    const order = await pendingOrder(s.cartToken, [
+      { productId: product.id, name: `${TAG} item`, slug: product.slug, unitCents: 1200, quantity: 2 },
+    ], ref, "Leave with the neighbour at number 12");
+
+    await db.product.update({ where: { id: product.id }, data: { stock: 0 } });
+    await postStripeWebhook(stripeEvent(ref, "checkout.session.completed", `evt_${TAG}_note`));
+
+    const after = await db.order.findUnique({ where: { id: order.id } });
+    check("oversell is flagged", after?.note?.includes("OVERSOLD") === true);
+    check("delivery instructions survive the flag",
+      after?.note?.includes("Leave with the neighbour at number 12") === true,
+      after?.note ?? "no note");
+  }
+
+  section("Boolean query parameters");
+  {
+    const token = process.env.ADMIN_API_TOKEN ?? "";
+    const hidden = await makeProduct(900, 5);
+    await db.product.update({ where: { id: hidden.id }, data: { active: false } });
+
+    const res = await fetch(`${BASE}/api/admin/products?includeInactive=false&search=${TAG}`, {
+      headers: { authorization: `Bearer ${token}` },
+    });
+    const body = (await res.json()) as { products: { id: string }[] };
+    check("includeInactive=false really excludes inactive products",
+      !body.products.some((p) => p.id === hidden.id),
+      `returned ${body.products.length} product(s)`);
+
+    const res2 = await fetch(`${BASE}/api/admin/products?includeInactive=true&search=${TAG}`, {
+      headers: { authorization: `Bearer ${token}` },
+    });
+    const body2 = (await res2.json()) as { products: { id: string }[] };
+    check("includeInactive=true includes them",
+      body2.products.some((p) => p.id === hidden.id));
+  }
+
+  section("Contact honeypot");
+  {
+    const res = await fetch(`${BASE}/api/contact`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        name: "Bot", email: `${TAG}bot@example.com`, subject: "hello",
+        message: "this is a long enough message to pass validation",
+        website: "http://spam.example.com",
+      }),
+    });
+    check("a filled honeypot gets a fake success, not a 400", res.status === 200,
+      `got ${res.status}`);
+    const stored = await db.contactMessage.count({
+      where: { email: `${TAG}bot@example.com` },
+    });
+    check("honeypot submission is not stored", stored === 0, `stored ${stored}`);
+  }
+
+  section("Concurrent cart adds");
+  {
+    const product = await makeProduct(700, 10);
+    const s = new Session();
+    await s.addToCart(product.id, 1);
+    // Two adds in flight at once must not read the same starting quantity.
+    await Promise.all([s.addToCart(product.id, 1), s.addToCart(product.id, 1)]);
+    const cart = (await (await s.request("/api/cart")).json()) as CartResponse;
+    check("concurrent adds all count", cart.lines[0]?.quantity === 3,
+      `got ${cart.lines[0]?.quantity}`);
   }
 
   console.log(`\n${passed} passed, ${failed} failed\n`);

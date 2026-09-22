@@ -155,9 +155,12 @@ export function ProductEditForm({ product }: { product: EditableProduct }) {
       </div>
 
       <label className="flex items-center gap-3 text-sm">
+        {/* Browsers omit an unchecked box entirely; this makes "off" explicit. */}
+        <input type="hidden" name="active" value="false" />
         <input
           type="checkbox"
           name="active"
+          value="on"
           checked={active}
           onChange={(e) => setActive(e.target.checked)}
           className="size-4 accent-[--color-plum-700]"

@@ -32,20 +32,17 @@ export async function POST(req: NextRequest) {
   const token = await ensureCartToken();
   const cartId = await getOrCreateCartId(token);
 
-  const existing = await db.cartItem.findUnique({
-    where: { cartId_productId: { cartId, productId: product.id } },
-    select: { quantity: true },
-  });
-
-  const quantity = Math.min(
-    (existing?.quantity ?? 0) + parsed.data.quantity,
-    product.stock,
-  );
-
+  // Incremented in the database rather than read-then-written, so two rapid
+  // adds cannot read the same starting quantity and lose one of them.
+  // summarizeCart clamps the result back to live stock and persists the clamp.
   await db.cartItem.upsert({
     where: { cartId_productId: { cartId, productId: product.id } },
-    create: { cartId, productId: product.id, quantity },
-    update: { quantity },
+    create: {
+      cartId,
+      productId: product.id,
+      quantity: Math.min(parsed.data.quantity, product.stock),
+    },
+    update: { quantity: { increment: parsed.data.quantity } },
   });
   await db.cart.update({ where: { id: cartId }, data: { updatedAt: new Date() } });
 

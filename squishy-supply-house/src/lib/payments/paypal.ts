@@ -177,12 +177,16 @@ export const paypalProvider: PaymentProvider = {
         id?: string;
         custom_id?: string;
         supplementary_data?: { related_ids?: { order_id?: string } };
+        purchase_units?: { custom_id?: string }[];
       };
     };
 
     // Captures report their own id, so walk back to the order id we stored.
-    const orderRef =
-      event.resource?.supplementary_data?.related_ids?.order_id ?? event.resource?.id;
+    const relatedOrderId = event.resource?.supplementary_data?.related_ids?.order_id;
+    const orderRef = relatedOrderId ?? event.resource?.id;
+    // custom_id is our own order id, set on the purchase unit at checkout.
+    const ourOrderId =
+      event.resource?.custom_id ?? event.resource?.purchase_units?.[0]?.custom_id;
 
     switch (event.event_type) {
       case "CHECKOUT.ORDER.APPROVED": {
@@ -190,20 +194,31 @@ export const paypalProvider: PaymentProvider = {
         // Approval is not money. Capture, then report the real outcome.
         const status = await capture(orderRef);
         return status === "paid"
-          ? { kind: "paid", eventId: event.id, providerRef: orderRef }
+          ? { kind: "paid", eventId: event.id, providerRef: orderRef, orderId: ourOrderId }
           : { kind: "ignored", eventId: event.id };
       }
       case "PAYMENT.CAPTURE.COMPLETED":
-        if (!orderRef) return { kind: "ignored", eventId: event.id };
-        return { kind: "paid", eventId: event.id, providerRef: orderRef };
+        if (!orderRef && !ourOrderId) return { kind: "ignored", eventId: event.id };
+        return { kind: "paid", eventId: event.id, providerRef: orderRef, orderId: ourOrderId };
       case "PAYMENT.CAPTURE.DENIED":
       case "PAYMENT.CAPTURE.DECLINED":
-        if (!orderRef) return { kind: "ignored", eventId: event.id };
-        return { kind: "failed", eventId: event.id, providerRef: orderRef };
+        if (!orderRef && !ourOrderId) return { kind: "ignored", eventId: event.id };
+        return { kind: "failed", eventId: event.id, providerRef: orderRef, orderId: ourOrderId };
       case "PAYMENT.CAPTURE.REFUNDED":
-      case "PAYMENT.CAPTURE.REVERSED":
-        if (!orderRef) return { kind: "ignored", eventId: event.id };
-        return { kind: "refunded", eventId: event.id, providerRef: orderRef };
+      case "PAYMENT.CAPTURE.REVERSED": {
+        // resource.id here is the refund, not the order, so it is never a
+        // usable fallback. Only the related order id or our own custom_id are.
+        if (!relatedOrderId && !ourOrderId) {
+          console.warn(`[paypal] refund event ${event.id} carried no order reference`);
+          return { kind: "ignored", eventId: event.id };
+        }
+        return {
+          kind: "refunded",
+          eventId: event.id,
+          providerRef: relatedOrderId,
+          orderId: ourOrderId,
+        };
+      }
       default:
         return { kind: "ignored", eventId: event.id };
     }

@@ -41,9 +41,18 @@ export async function createPendingOrder(
   const totalCents = subtotalCents + shippingCents;
 
   const order = await db.$transaction(async (tx) => {
-    const created = await tx.order.create({
+    // Reserving the sequence value up front means the row is inserted once,
+    // already carrying its final number. Inserting a placeholder into a unique
+    // column first would make every concurrent checkout queue on one key.
+    const [{ seq }] = await tx.$queryRaw<{ seq: bigint }[]>`
+      SELECT nextval(pg_get_serial_sequence('"Order"', 'seq')) AS seq
+    `;
+    const seqNumber = Number(seq);
+
+    return tx.order.create({
       data: {
-        number: "",
+        seq: seqNumber,
+        number: orderNumberFor(seqNumber),
         accessToken: randomBytes(16).toString("hex"),
         cartToken,
         email: input.email,
@@ -71,14 +80,6 @@ export async function createPendingOrder(
           })),
         },
       },
-      select: { id: true, seq: true },
-    });
-
-    // seq is assigned by the database, so the human-readable number is set once
-    // the row exists.
-    return tx.order.update({
-      where: { id: created.id },
-      data: { number: orderNumberFor(created.seq) },
       select: {
         id: true,
         number: true,
@@ -144,15 +145,41 @@ function toEmailData(order: {
  * post-redirect confirmation call cannot double-decrement stock or double-send
  * the receipt.
  */
+export type OrderLookup = { providerRef?: string; orderId?: string };
+
+/**
+ * A webhook can arrive before the provider reference has been stored, so the
+ * order is also findable by the id we hand the provider as metadata. Without
+ * this, a payment landing inside that window would never be recorded.
+ */
+async function findOrderFor(provider: PaymentProviderName, ref: OrderLookup) {
+  const order = await db.order.findFirst({
+    where: {
+      provider,
+      OR: [
+        ...(ref.providerRef ? [{ providerRef: ref.providerRef }] : []),
+        ...(ref.orderId ? [{ id: ref.orderId }] : []),
+      ],
+    },
+    select: { id: true, status: true, provider: true, providerRef: true },
+  });
+  if (!order) return null;
+
+  // Backfill the reference so later events and refunds resolve directly.
+  if (ref.providerRef && order.providerRef !== ref.providerRef) {
+    await db.order
+      .update({ where: { id: order.id }, data: { providerRef: ref.providerRef } })
+      .catch(() => {});
+  }
+  return order;
+}
+
 export async function markOrderPaid(
   provider: PaymentProviderName,
-  providerRef: string,
+  ref: OrderLookup,
 ): Promise<"applied" | "already" | "unknown"> {
-  const order = await db.order.findUnique({
-    where: { providerRef },
-    select: { id: true, status: true, provider: true },
-  });
-  if (!order || order.provider !== provider) return "unknown";
+  const order = await findOrderFor(provider, ref);
+  if (!order) return "unknown";
   if (order.status !== "PENDING") return "already";
 
   const result = await db.$transaction(async (tx) => {
@@ -180,11 +207,16 @@ export async function markOrderPaid(
     }
 
     if (shortfalls.length > 0) {
+      // Appended, never assigned: `note` also holds what the customer typed at
+      // checkout, which is often the delivery instructions.
+      const existing = await tx.order.findUniqueOrThrow({
+        where: { id: order.id },
+        select: { note: true },
+      });
+      const flag = `OVERSOLD — could not reserve: ${shortfalls.join(", ")}. Refund or restock manually.`;
       await tx.order.update({
         where: { id: order.id },
-        data: {
-          note: `OVERSOLD — could not reserve: ${shortfalls.join(", ")}. Refund or restock manually.`,
-        },
+        data: { note: existing.note ? `${flag}\n\nCustomer note: ${existing.note}` : flag },
       });
     }
 
@@ -245,23 +277,29 @@ export async function markOrderPaid(
 
 export async function markOrderFailed(
   provider: PaymentProviderName,
-  providerRef: string,
-): Promise<void> {
+  ref: OrderLookup,
+): Promise<"applied" | "already" | "unknown"> {
+  const order = await findOrderFor(provider, ref);
+  if (!order) return "unknown";
   // Only abandons an order that never got paid; a PAID order is never reverted.
-  await db.order.updateMany({
-    where: { providerRef, provider, status: "PENDING" },
+  const result = await db.order.updateMany({
+    where: { id: order.id, status: "PENDING" },
     data: { status: "CANCELLED" },
   });
+  return result.count > 0 ? "applied" : "already";
 }
 
 export async function markOrderRefunded(
   provider: PaymentProviderName,
-  providerRef: string,
-): Promise<void> {
-  await db.order.updateMany({
-    where: { providerRef, provider, status: { in: ["PAID", "FULFILLED"] } },
+  ref: OrderLookup,
+): Promise<"applied" | "already" | "unknown"> {
+  const order = await findOrderFor(provider, ref);
+  if (!order) return "unknown";
+  const result = await db.order.updateMany({
+    where: { id: order.id, status: { in: ["PAID", "FULFILLED"] } },
     data: { status: "REFUNDED" },
   });
+  return result.count > 0 ? "applied" : "already";
 }
 
 export async function clearCartForOrder(cartToken: string | null): Promise<void> {

@@ -17,6 +17,22 @@ export function slugify(input: string): string {
     .slice(0, 72);
 }
 
+/**
+ * z.coerce.boolean() is Boolean(x), so the string "false" parses as true and
+ * `?includeInactive=false` would do the opposite of what it says. Query strings
+ * and form fields only ever carry strings, so they need a real parser.
+ */
+const booleanish = z
+  .union([z.boolean(), z.string()])
+  .transform((v, ctx) => {
+    if (typeof v === "boolean") return v;
+    const normalised = v.trim().toLowerCase();
+    if (["true", "1", "on", "yes"].includes(normalised)) return true;
+    if (["false", "0", "off", "no", ""].includes(normalised)) return false;
+    ctx.addIssue({ code: "custom", message: "Expected true or false" });
+    return z.NEVER;
+  });
+
 const priceField = z
   .union([z.string(), z.number()])
   .transform((v, ctx) => {
@@ -27,6 +43,24 @@ const priceField = z
     }
     if (cents > 100_000_00) {
       ctx.addIssue({ code: "custom", message: "Price must be under $100,000" });
+      return z.NEVER;
+    }
+    return cents;
+  });
+
+/**
+ * Supplier cost is optional, and the edit form submits an empty string when it
+ * is unset. Treating "" as null makes the field clearable and stops an empty
+ * one failing price validation, which previously blocked saving any product
+ * that had no cost recorded.
+ */
+const optionalPriceField = z
+  .union([z.literal(""), z.string(), z.number(), z.null()])
+  .transform((v, ctx) => {
+    if (v === "" || v === null) return null;
+    const cents = parsePriceToCents(v);
+    if (cents === null || cents < 0) {
+      ctx.addIssue({ code: "custom", message: "Cost must be a number like 4 or 4.99" });
       return z.NEVER;
     }
     return cents;
@@ -47,10 +81,10 @@ export const productCreateSchema = z.object({
   imageAlt: z.string().trim().max(200).optional(),
   extraImages: z.array(imageUrlField).max(6).optional(),
   stock: z.coerce.number().int().min(0).max(100_000).optional(),
-  active: z.coerce.boolean().optional(),
+  active: booleanish.optional(),
   sortOrder: z.coerce.number().int().optional(),
   supplierUrl: z.string().trim().url().optional().or(z.literal("")),
-  supplierCost: priceField.optional(),
+  supplierCost: optionalPriceField.optional(),
   supplierNote: z.string().trim().max(2000).optional(),
 });
 
@@ -66,7 +100,7 @@ export const productDeleteSchema = z.object({
 
 export const productListSchema = z.object({
   search: z.string().trim().max(140).optional(),
-  includeInactive: z.coerce.boolean().optional(),
+  includeInactive: booleanish.optional(),
   limit: z.coerce.number().int().min(1).max(100).default(50),
   offset: z.coerce.number().int().min(0).default(0),
 });
@@ -128,8 +162,10 @@ export const contactSchema = z.object({
   email: z.string().trim().toLowerCase().email("Enter a valid email address"),
   subject: z.string().trim().min(1, "Subject is required").max(160),
   message: z.string().trim().min(10, "Tell us a little more").max(4000),
-  // Honeypot. Real people never fill this in.
-  website: z.string().max(0).optional(),
+  // Honeypot. Real people never fill this in. Deliberately permissive so a
+  // filled one reaches the handler and can be answered with a fake success
+  // rather than a 400 that names the trap.
+  website: z.string().optional(),
 });
 
 export const adminLoginSchema = z.object({

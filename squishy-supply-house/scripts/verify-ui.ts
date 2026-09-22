@@ -315,6 +315,28 @@ async function run(browser: Browser) {
   check("adding a product takes under 30 seconds", elapsed < 30, `${elapsed.toFixed(1)}s`);
   await admin.screenshot({ path: `${SHOTS}/admin-products.png`, fullPage: true });
 
+  // An unchecked checkbox is not submitted at all, so this is the regression
+  // guard for "Visible in the shop" being impossible to turn off.
+  await admin.goto(`${BASE}/admin/products`, { waitUntil: "load" });
+  await admin
+    .locator("li", { hasText: probeName })
+    .getByRole("link", { name: /edit/i })
+    .click();
+  await admin.waitForURL(/\/admin\/products\//, { timeout: 15000 });
+  const visible = admin.locator("input[type='checkbox'][name='active']");
+  check("product starts visible", await visible.isChecked());
+  await visible.uncheck();
+  await admin.getByRole("button", { name: /save changes/i }).click();
+  await admin.waitForTimeout(2500);
+  await admin.reload({ waitUntil: "load" });
+  check(
+    "unchecking 'visible in the shop' persists",
+    !(await admin.locator("input[type='checkbox'][name='active']").isChecked()),
+  );
+  await admin.locator("input[type='checkbox'][name='active']").check();
+  await admin.getByRole("button", { name: /save changes/i }).click();
+  await admin.waitForTimeout(2000);
+
   await admin.goto(`${BASE}/admin/setup`, { waitUntil: "load" });
   check(
     "setup route closes once an admin exists",

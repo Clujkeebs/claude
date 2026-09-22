@@ -41,19 +41,28 @@ export async function POST(req: NextRequest, ctx: RouteContext<"/api/webhooks/[p
     return Response.json({ received: true, duplicate: true });
   }
 
+  if (outcome.kind === "ignored") {
+    return Response.json({ received: true, ignored: true });
+  }
+
+  const ref = { providerRef: outcome.providerRef, orderId: outcome.orderId };
+
   try {
-    switch (outcome.kind) {
-      case "paid":
-        await markOrderPaid(name, outcome.providerRef);
-        break;
-      case "failed":
-        await markOrderFailed(name, outcome.providerRef);
-        break;
-      case "refunded":
-        await markOrderRefunded(name, outcome.providerRef);
-        break;
-      case "ignored":
-        break;
+    const result =
+      outcome.kind === "paid"
+        ? await markOrderPaid(name, ref)
+        : outcome.kind === "failed"
+          ? await markOrderFailed(name, ref)
+          : await markOrderRefunded(name, ref);
+
+    // Acknowledged either way — retrying an event for an order this store has
+    // never seen would loop for days — but it is logged loudly, because on a
+    // live store it means a real payment with no order attached to it.
+    if (result === "unknown") {
+      console.error(
+        `[webhook:${slug}] ${outcome.kind} event ${outcome.eventId} matched no order ` +
+          `(providerRef=${ref.providerRef ?? "none"} orderId=${ref.orderId ?? "none"})`,
+      );
     }
   } catch (err) {
     console.error(`[webhook:${slug}] handling failed`, err);

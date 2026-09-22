@@ -45,7 +45,7 @@ export default async function OrderPage(props: PageProps<"/orders/[number]">) {
     try {
       const status = await providerByName(order.provider).confirmByRef(order.providerRef);
       if (status === "paid") {
-        await markOrderPaid(order.provider, order.providerRef);
+        await markOrderPaid(order.provider, { providerRef: order.providerRef });
         order = (await getOrderByNumber(order.number)) ?? order;
       }
     } catch (err) {

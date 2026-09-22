@@ -29,10 +29,17 @@ export type CheckoutSession = {
  * Every webhook resolves to one of these. `eventId` is what makes replay
  * handling possible — it is recorded before the effect is applied.
  */
+export type OrderRef = {
+  /** The provider's identifier for the attempt. May not be stored yet. */
+  providerRef?: string;
+  /** Our own order id, echoed back through provider metadata. */
+  orderId?: string;
+};
+
 export type WebhookOutcome =
-  | { kind: "paid"; eventId: string; providerRef: string }
-  | { kind: "failed"; eventId: string; providerRef: string }
-  | { kind: "refunded"; eventId: string; providerRef: string }
+  | ({ kind: "paid"; eventId: string } & OrderRef)
+  | ({ kind: "failed"; eventId: string } & OrderRef)
+  | ({ kind: "refunded"; eventId: string } & OrderRef)
   | { kind: "ignored"; eventId: string };
 
 export interface PaymentProvider {

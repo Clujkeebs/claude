@@ -92,15 +92,39 @@ export const stripeProvider: PaymentProvider = {
         if (session.payment_status !== "paid") {
           return { kind: "ignored", eventId: event.id };
         }
-        return { kind: "paid", eventId: event.id, providerRef: session.id };
+        return {
+          kind: "paid",
+          eventId: event.id,
+          providerRef: session.id,
+          orderId: session.metadata?.orderId ?? session.client_reference_id ?? undefined,
+        };
       }
-      case "checkout.session.async_payment_succeeded":
-        return { kind: "paid", eventId: event.id, providerRef: event.data.object.id };
+      case "checkout.session.async_payment_succeeded": {
+        const session = event.data.object;
+        return {
+          kind: "paid",
+          eventId: event.id,
+          providerRef: session.id,
+          orderId: session.metadata?.orderId ?? session.client_reference_id ?? undefined,
+        };
+      }
       case "checkout.session.async_payment_failed":
-      case "checkout.session.expired":
-        return { kind: "failed", eventId: event.id, providerRef: event.data.object.id };
+      case "checkout.session.expired": {
+        const session = event.data.object;
+        return {
+          kind: "failed",
+          eventId: event.id,
+          providerRef: session.id,
+          orderId: session.metadata?.orderId ?? session.client_reference_id ?? undefined,
+        };
+      }
       case "charge.refunded": {
         const charge = event.data.object;
+        // Fires for partial refunds too. Only a full refund makes the order
+        // refunded; a partial one is a bookkeeping matter for the owner.
+        if (charge.amount_refunded < charge.amount) {
+          return { kind: "ignored", eventId: event.id };
+        }
         const pi =
           typeof charge.payment_intent === "string"
             ? charge.payment_intent
